@@ -7,7 +7,7 @@
 3. Type:
 
 ```
-yarn add
+yarn install
 yarn start
 ```
 
@@ -24,7 +24,8 @@ localhost:3000
 ```
 
 6. login using credentials:
-   username: john
-   password: password
 
+   **username**: john  
+   **password**: password
+  
 7. Done!
