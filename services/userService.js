@@ -20,14 +20,15 @@ async function getOne() {
 }
 
 // Create a new user
-async function createUser() {
+async function createUser(username, email, password) {
   // Note: using `force: true` will drop the table if it already exists
-  models.RegisteredUsers.sync({ force: true }).then(() => {
+  models.RegisteredUsers.sync().then(() => {
     // Now the `users` table in the database corresponds to the model definition
+    // TODO: Check if
     return models.RegisteredUsers.create({
-      username: 'john',
-      email: 'john@yahoo.com',
-      password: 'password'
+      username: username,
+      email: email,
+      password: password
     });
   });
 }

@@ -9,12 +9,13 @@ module.exports = {
   logger: bunyan.createLogger({ name: appname }),
   mysql: {
     options: {
-      host: 'localhost',
+      host: '172.17.0.1',
       port: 3306,
       database: 'Group07',
       dialect: 'mysql',
       username: 'root',
       password: 'mypassword',
+      operatorsAliases: false,
       hooks: {
         beforeCreate: user => {
           console.log(user);

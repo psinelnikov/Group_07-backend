@@ -6,16 +6,16 @@ module.exports = config => {
   const log = config.logger;
   const user = userService(config.mysql.client);
 
-  // Do you see the keyword 'async' here?
-  // If this looks unfamiliar, this is a new language feature of JavaScript
-  // that made it into Node.js in version 8
-  // Functions that are marked with async can use the await keyword which
-  // lets you basically use asynchronous functions as if they were synchronous.
-  router.get('/createUser', async (req, res, next) => {
+  router.post('/create', async (req, res) => {
     try {
-      await user.createUser();
+      await user.createUser(
+        req.body.username,
+        req.body.email,
+        req.body.password
+      );
+      res.send(true);
     } catch (err) {
-      return next(err);
+      return res.send(err);
     }
   });
 
@@ -31,30 +31,29 @@ module.exports = config => {
       }
       return res.json({
         users
-        //user
       });
     } catch (err) {
       return next(err);
     }
   });
 
-  router.post('/auth', async (request, response) => {
-    var username = request.body.username;
-    var password = request.body.password;
+  router.post('/auth', async (req, res) => {
+    var username = req.body.username;
+    var password = req.body.password;
     if (username && password) {
       var isReturned = await user.authenticate(username, password);
 
       if (isReturned) {
-        request.session.loggedin = true;
-        request.session.username = username;
-        response.redirect(301, 'http://localhost:8080');
+        res.send(true);
       } else {
-        response.send('Incorrect Username and/or Password!');
+        // 'Incorrect Username and/or Password!'
+        res.send(false);
       }
-      response.end();
+      res.end();
     } else {
-      response.send('Please enter Username and Password!');
-      response.end();
+      // 'Please enter Username and Password!'
+      res.send(false);
+      res.end();
     }
   });
 
