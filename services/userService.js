@@ -22,10 +22,22 @@ async function getOne() {
 // Create a new user
 async function createUser(username, email, password) {
   // Note: using `force: true` will drop the table if it already exists
+  let user = await models.RegisteredUsers.findAll({
+    limit: 1,
+    where: {
+      email: email
+    }
+  });
+
+  // If user does not exist
+  if (user.length !== 0) {
+    throw 'User already exists';
+  }
+
   models.RegisteredUsers.sync().then(() => {
     // Now the `users` table in the database corresponds to the model definition
-    // TODO: Check if
-    return models.RegisteredUsers.create({
+
+    models.RegisteredUsers.create({
       username: username,
       email: email,
       password: password
