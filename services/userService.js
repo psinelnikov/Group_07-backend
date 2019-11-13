@@ -58,11 +58,11 @@ async function updateUser() {
   });
 }
 
-async function authenticate(username, plainTextPassword) {
+async function authenticate(email, plainTextPassword) {
   let user = await models.RegisteredUsers.findAll({
     limit: 1,
     where: {
-      username: username
+      email: email
     }
   });
 

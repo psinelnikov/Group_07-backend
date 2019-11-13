@@ -38,7 +38,7 @@ module.exports = config => {
   });
 
   router.post('/auth', async (req, res) => {
-    var username = req.body.username;
+    var username = req.body.email;
     var password = req.body.password;
     if (username && password) {
       var isReturned = await user.authenticate(username, password);
