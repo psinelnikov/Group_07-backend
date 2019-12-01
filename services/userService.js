@@ -1,21 +1,32 @@
 const Models = require('../models');
 const bcrypt = require('bcrypt');
 
+const SALT_WORK_FACTOR = 10;
+
 let client = null;
 let models = null;
 
 // Find all users
 async function getAll() {
-  models.RegisteredUsers.findAll().then(users => {
-    console.log('All users:', JSON.stringify(users, null, 4));
+  return models.RegisteredUsers.findAll();
+  //.then(users => {
+  //   console.log('All users:', JSON.stringify(users, null, 4));
+  // });
+}
+
+async function getOneById(userId) {
+  return models.RegisteredUsers.findOne({
+    where: {
+      id: userId
+    }
   });
 }
 
-async function getOne() {
-  models.RegisteredUsers.findAll({
-    limit: 1
-  }).then(user => {
-    console.log('One user:', user.username);
+async function getOneByEmail(email) {
+  return models.RegisteredUsers.findOne({
+    where: {
+      email: email
+    }
   });
 }
 
@@ -34,14 +45,68 @@ async function createUser(username, email, password) {
     throw 'User already exists';
   }
 
+  // generate a salt
+  bcrypt.genSalt(SALT_WORK_FACTOR, async (err, salt) => {
+    if (err) console.log(err);
+    // hash the password using our new salt
+    bcrypt.hash(password, salt, (hasherr, hash) => {
+      if (hasherr) console.log(hasherr);
+      // override the cleartext password with the hashed one
+      models.RegisteredUsers.sync().then(() => {
+        // Now the `users` table in the database corresponds to the model definition
+
+        models.RegisteredUsers.create({
+          username: username,
+          email: email,
+          password: hash
+        });
+      });
+    });
+  });
+}
+
+// Append user history
+async function addUserHistory(result, email) {
+  var tempResult = result;
+  delete tempResult.description;
+  delete tempResult.content;
+  delete tempResult.urlToImage;
+  delete tempResult.publishedAt;
+  delete tempResult.updatedAt;
+  delete tempResult.source;
+  delete tempResult.author;
+  // Note: using `force: true` will drop the table if it already exists
+  var user = await models.RegisteredUsers.findOne({
+    where: {
+      email: email
+    }
+  });
+
+  // If user does not exist
+  if (user == null) {
+    throw 'User does not exist!';
+  }
+
+  var tempUserHistory = user.history;
+
   models.RegisteredUsers.sync().then(() => {
     // Now the `users` table in the database corresponds to the model definition
-
-    models.RegisteredUsers.create({
-      username: username,
-      email: email,
-      password: password
-    });
+    if (tempUserHistory == null) {
+      models.RegisteredUsers.update(
+        {
+          history: JSON.stringify(tempResult)
+        },
+        { where: { id: user.id } }
+      );
+    } else {
+      tempUserHistory.push(JSON.stringify(tempResult));
+      models.RegisteredUsers.update(
+        {
+          history: tempUserHistory
+        },
+        { where: { id: user.id } }
+      );
+    }
   });
 }
 
@@ -85,16 +150,32 @@ async function authenticate(email, plainTextPassword) {
   }
 }
 
+async function getUserFavorites() {
+  models.RegisteredUsers.findAll().then(users => {
+    console.log('All users:', JSON.stringify(users.history, null, 4));
+  });
+}
+
+async function getUserHistory() {
+  models.RegisteredUsers.findAll().then(users => {
+    console.log('All users:', JSON.stringify(users.favorites, null, 4));
+  });
+}
+
 module.exports = _client => {
   models = Models(_client);
   client = _client;
 
   return {
     getAll,
-    getOne,
+    getOneById,
+    getOneByEmail,
     createUser,
     deleteUser,
     updateUser,
-    authenticate
+    authenticate,
+    addUserHistory,
+    getUserFavorites,
+    getUserHistory
   };
 };

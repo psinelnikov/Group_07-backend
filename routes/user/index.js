@@ -19,18 +19,49 @@ module.exports = config => {
     }
   });
 
-  router.get('/:userId?', async (req, res, next) => {
+  router.post('/addToHistory', async (req, res) => {
     try {
-      const users = await user.getAll();
+      await user.addUserHistory(req.body.result, req.body.email);
+      res.send(true);
+    } catch (err) {
+      return res.send(err);
+    }
+  });
 
-      //let user = null;
+  // router.get('/:userId?', async (req, res, next) => {
+  //   try {
+  //     const users = await user.getAll();
 
-      // The optional userId param was passed
-      if (req.params.userId) {
-        user = await user.getOne(req.params.userId);
-      }
+  //     // The optional userId param was passed
+  //     if (req.params.userId) {
+  //       var user = await user.getOne(req.params.userId);
+  //     }
+  //     return res.json({
+  //       users
+  //     });
+  //   } catch (err) {
+  //     return next(err);
+  //   }
+  // });
+
+  router.get('/profile', async (req, res, next) => {
+    try {
+      var oneUser = await user.getOneByEmail(req.query.email);
+
       return res.json({
-        users
+        oneUser
+      });
+    } catch (err) {
+      return next(err);
+    }
+  });
+
+  router.get('/all', async (req, res, next) => {
+    try {
+      var allUsers = await user.getAll();
+
+      return res.json({
+        allUsers
       });
     } catch (err) {
       return next(err);
@@ -59,6 +90,7 @@ module.exports = config => {
 
   // Save or update user
   router.post('/', async (req, res) => {
+    const user = req.body.username.trim();
     const email = req.body.email.trim();
     const password = req.body.password.trim();
     // Add this here because on update we might want to keep the password as it is
@@ -72,31 +104,33 @@ module.exports = config => {
     try {
       // If there was no existing user we now want to create a new user object
       if (!req.body.userId) {
-        await userService.create({ email, password });
       } else {
-        const userData = {
-          email
-        };
-        // Add this if because password does not need to be changed on updated
+        var userData = {};
+        if (username) {
+          userData.username = username;
+        }
+
+        if (email) {
+          userData.email = email;
+        }
+
         if (password) {
           userData.password = password;
         }
-        await userService.update(req.body.userId, userData);
+        await userService.updateUser(req.body.userId, userData);
       }
       req.session.messages.push({
         type: 'success',
-        text: `The user was ${
-          req.body.userId ? 'updated' : 'created'
-        } successfully!`
+        text: 'The user was updated successfully!'
       });
-      return res.redirect('/admin/user');
+      return res.send(true);
     } catch (err) {
       req.session.messages.push({
         type: 'danger',
         text: 'There was an error while saving the user!'
       });
       log.fatal(err);
-      return res.redirect('/admin/user');
+      return res.send(false);
     }
   });
 
