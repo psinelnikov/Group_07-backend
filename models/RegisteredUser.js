@@ -30,8 +30,13 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
       defaultValue: null,
       get() {
-        if (this.getDataValue('favorites') != null) {
-          return this.getDataValue('favorites').split(';');
+        var favorites = this.getDataValue('favorites');
+        if (favorites != null) {
+          if (String(favorites).includes(';')) {
+            return favorites.split(';');
+          } else {
+            return [favorites];
+          }
         }
       },
       set(val) {
