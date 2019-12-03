@@ -150,9 +150,51 @@ async function authenticate(email, plainTextPassword) {
   }
 }
 
-async function getUserFavorites() {
-  models.RegisteredUsers.findAll().then(users => {
-    console.log('All users:', JSON.stringify(users.history, null, 4));
+async function createFavorite(email, article){
+  models.Favourites.sync().then(() => {
+    models.Favourites.create({
+      email: email,
+      article: article
+    });
+  });
+}
+
+async function removeFavorite(email, article){
+  models.Favourites.destroy({
+    where: {
+      email: email,
+      article: article
+    }
+  }).then(() => {
+    console.log('Deletus favoritus');
+  });
+}
+
+async function findFavorite(email, article){
+  return models.Favourites.findOne({
+    where: {
+      email: email,
+      article: article
+    }
+  });
+}
+
+async function toggleFavorite(email,article){
+  if (await findFavorite(email, article)){
+    removeFavorite(email, article);
+    return false;
+  }
+  else{
+    createFavorite(email, article);
+    return true;
+  }
+}
+
+async function getUserFavorites(email) {
+  return models.Favourites.findAll({
+    where: {
+      email: email
+    }
   });
 }
 
@@ -175,6 +217,9 @@ module.exports = _client => {
     updateUser,
     authenticate,
     addUserHistory,
+    createFavorite,
+    findFavorite,
+    toggleFavorite,
     getUserFavorites,
     getUserHistory
   };

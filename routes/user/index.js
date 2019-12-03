@@ -19,11 +19,35 @@ module.exports = config => {
     }
   });
 
+  router.post('/addToFavorites', async (req, res) => {
+    try {
+      var added = await user.toggleFavorite(req.body.email, req.body.url);
+      console.log(added);
+      res.send(added);
+    } catch (err) {
+      return res.send(err);
+    }
+  });
+
   router.post('/addToHistory', async (req, res) => {
     try {
       await user.addUserHistory(req.body.result, req.body.email);
       res.send(true);
     } catch (err) {
+      return res.send(err);
+    }
+  });
+
+  router.post('/checkFavorites', async (req, res) => {
+    try {
+      var favs = [];
+      for (var article of req.body.article){
+        var fav = await user.findFavorite(req.body.email, article.result.title);
+        favs.push(fav);
+      }
+      return res.json(favs);
+    } catch (err) {
+      console.log(err);
       return res.send(err);
     }
   });
@@ -47,9 +71,11 @@ module.exports = config => {
   router.get('/profile', async (req, res, next) => {
     try {
       var oneUser = await user.getOneByEmail(req.query.email);
+      var article = await user.getUserFavorites(req.query.email);
 
       return res.json({
-        oneUser
+        oneUser,
+        article
       });
     } catch (err) {
       return next(err);
