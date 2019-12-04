@@ -150,48 +150,48 @@ async function authenticate(email, plainTextPassword) {
   }
 }
 
-async function createFavorite(email, article){
-  models.Favourites.sync().then(() => {
-    models.Favourites.create({
+async function createFavorite(email, articleTitle, articleURL) {
+  models.Favorites.sync().then(() => {
+    models.Favorites.create({
       email: email,
-      article: article
+      articleTitle: articleTitle,
+      articleURL: articleURL
     });
   });
 }
 
-async function removeFavorite(email, article){
-  models.Favourites.destroy({
+async function removeFavorite(email, articleTitle) {
+  models.Favorites.destroy({
     where: {
       email: email,
-      article: article
+      articleTitle: articleTitle
     }
   }).then(() => {
-    console.log('Deletus favoritus');
+    console.log('Deleted Favorites');
   });
 }
 
-async function findFavorite(email, article){
-  return models.Favourites.findOne({
+async function findFavorite(email, articleTitle) {
+  return models.Favorites.findOne({
     where: {
       email: email,
-      article: article
+      articleTitle: articleTitle
     }
   });
 }
 
-async function toggleFavorite(email,article){
-  if (await findFavorite(email, article)){
-    removeFavorite(email, article);
+async function toggleFavorite(email, articleTitle, articleURL) {
+  if (await findFavorite(email, articleTitle)) {
+    removeFavorite(email, articleTitle);
     return false;
-  }
-  else{
-    createFavorite(email, article);
+  } else {
+    createFavorite(email, articleTitle, articleURL);
     return true;
   }
 }
 
 async function getUserFavorites(email) {
-  return models.Favourites.findAll({
+  return models.Favorites.findAll({
     where: {
       email: email
     }

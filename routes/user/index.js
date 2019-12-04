@@ -21,8 +21,11 @@ module.exports = config => {
 
   router.post('/addToFavorites', async (req, res) => {
     try {
-      var added = await user.toggleFavorite(req.body.email, req.body.url);
-      console.log(added);
+      var added = await user.toggleFavorite(
+        req.body.email,
+        req.body.title,
+        req.body.url
+      );
       res.send(added);
     } catch (err) {
       return res.send(err);
@@ -41,7 +44,7 @@ module.exports = config => {
   router.post('/checkFavorites', async (req, res) => {
     try {
       var favs = [];
-      for (var article of req.body.article){
+      for (var article of req.body.article) {
         var fav = await user.findFavorite(req.body.email, article.result.title);
         favs.push(fav);
       }
