@@ -16,7 +16,7 @@
     "express-session": "^1.15.6",
     "mime": "^1.4.1",
     "mysql2": "^1.4.2",
-    "sequelize": "^4.15.0"
+    "sequelize": "^5.15.1"
   },
   "author": "",
   "license": "ISC"
